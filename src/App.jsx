@@ -12,15 +12,16 @@ import "./App.css";
 
 function App() {
   /* Tamagotchi State */
-  const [hunger, setHunger] = useState(50); // 0–100 (lower = better)
-  const [happiness, setHappiness] = useState(50); // 0–100 (higher = better)
-  const [energy, setEnergy] = useState(50); // 0–100 (higher = better)
+  const [hunger, setHunger] = useState(10); // 0–100 (lower = better)
+  const [happiness, setHappiness] = useState(90); // 0–100 (higher = better)
+  const [energy, setEnergy] = useState(90); // 0–100 (higher = better)
   const [petName, setPetName] = useState("Doggo");
   const [isAlive, setIsAlive] = useState(true);
   const [isHoveredOver, setIsHoveredOver] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
 
   /* Misc State */
+  const [newPetName, setNewPetName] = useState("");
   const [debugMode, setDebugMode] = useState(false);
 
   /* Keyboard Shortcuts */
@@ -31,7 +32,7 @@ function App() {
     else console.log("Exiting debug mode.");
   });
 
-  /* Effects */
+  /* Misc Effects */
   useEffect(() => {
     if (!isAlive) return;
     if (!isClicked) return;
@@ -43,25 +44,32 @@ function App() {
     return () => clearInterval(interval);
   }, [isClicked]);
 
+  /* Tamagotchi Effects */
   useEffect(() => {
     if (!isAlive) return;
 
     const interval = setInterval(() => {
-      setHunger((h) => Math.min(Math.max(0, h + 2), 100)); // hunger goes up
-      setEnergy((e) => Math.min(Math.max(0, e - 1), 100)); // energy goes down
-      setHappiness((h) =>
-        Math.min(Math.min(Math.max(0, h - 1), 100 - hunger), 100 - energy)
-      ); // happiness goes down
+      setHunger((h) => {
+        const newHunger = Math.min(Math.max(0, h + 2), 100);
+        setEnergy((e) => {
+          const newEnergy = Math.min(Math.max(0, e - 1), 100);
+          setHappiness((h) =>
+            Math.min(Math.min(Math.max(0, h - 1), 100 - newHunger), newEnergy)
+          ); // happiness goes down
+          return newEnergy;
+        }); // energy goes down
+        return newHunger;
+      }); // hunger goes up
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isAlive]);
+  }, [isAlive, hunger, energy]);
 
   useEffect(() => {
     if (hunger >= 100 || energy <= 0) {
       setIsAlive(false);
     }
-  }, [hunger, happiness, energy]);
+  }, [hunger, energy]);
 
   /* User Actions */
   function feed() {
@@ -104,6 +112,13 @@ function App() {
         onClick={() => setIsClicked(true)}
         id="tamagotchiIcon"
       ></img>
+      {debugMode && (
+        <>
+          <p>Hunger: {hunger}</p>
+          <p>Energy: {energy}</p>
+          <p>Happiness: {happiness}</p>
+        </>
+      )}
       <div className="card">
         {isAlive && (
           <>
@@ -111,6 +126,22 @@ function App() {
             <button onClick={feed}>Feed {petName}</button>
             <button onClick={play}>Play with {petName}</button>
             <button onClick={rest}>Put {petName} to sleep</button>
+            <input
+              id="renameField"
+              type="text"
+              placeholder={petName}
+              value={newPetName}
+              onChange={(e) => setNewPetName(e.currentTarget.value)}
+            ></input>
+            <button
+              onClick={() => {
+                setPetName(newPetName);
+                setNewPetName("");
+              }}
+              disabled={newPetName == ""}
+            >
+              Rename {petName} to {newPetName}
+            </button>
           </>
         )}
         {!isAlive && (
