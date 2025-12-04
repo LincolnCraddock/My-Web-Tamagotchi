@@ -140,7 +140,9 @@ function App() {
               }}
               disabled={newPetName == ""}
             >
-              Rename {petName} to {newPetName}
+              {newPetName == ""
+                ? `Rename ${petName}`
+                : `Rename ${petName} to ${newPetName}`}
             </button>
           </>
         )}
