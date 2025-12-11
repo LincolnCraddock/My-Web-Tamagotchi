@@ -87,7 +87,7 @@ function App() {
     fetch(resourceURL + "tamagotchi.json")
       .then((res) => res.json())
       .then((data) => {
-        const c = data.tamagotchi[1];
+        const c = data.tamagotchi[0];
 
         setPetName(c.name);
         setPetData({
